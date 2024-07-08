@@ -1,0 +1,395 @@
+
+import numpy as np
+import pandas as pd
+import os
+import csv
+import cv2
+import matplotlib.pyplot as plt
+import pickle
+import joblib
+import xgboost as xgb
+from sklearn.svm import SVC
+from skimage.feature import hog
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import KFold
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import StratifiedKFold
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score,f1_score, classification_report, confusion_matrix , accuracy_score, precision_score, recall_score, f1_score, roc_curve ,roc_auc_score,ConfusionMatrixDisplay
+
+#Connecting to Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+#Path of dataset
+folder1="/content/drive/MyDrive/CV_CP_Dataset/glioma_tumor"
+folder2="/content/drive/MyDrive/CV_CP_Dataset/meningioma_tumor"
+folder3="/content/drive/MyDrive/CV_CP_Dataset/no_tumor"
+folder4="/content/drive/MyDrive/CV_CP_Dataset/pituitary"
+
+#Floder 1 (Glioma Tumor)
+#initializes an empty list hog_descs to store Histogram of Oriented Gradients (HOG) descriptors
+hog_descs = []
+i = 0
+for filename in os.listdir(folder1):
+    # print(os.path.join(folder_path, filename))
+    img = cv2.imread(os.path.join(folder1, filename))
+    if img is not None:
+
+        #resize total  image size to 200 x 200
+        resize=(200,200)
+        img1=cv2.resize(img,resize)
+
+        # Grayscaling the image dataset
+        gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+
+        # Apply median filter with kernel size 3x3
+        median_img = cv2.medianBlur(gray, 3)
+
+        fd, hog_image = hog(median_img, orientations=6, pixels_per_cell=(4, 4),  transform_sqrt=True,cells_per_block=(1, 1), visualize=True)
+        # Convert the descriptor array into a DataFrame format
+        hog_descs.append(fd)
+        df = pd.DataFrame(fd)
+        # print(df)
+        print("descriptor shape ", i, " : ", df.shape)
+        i = i + 1
+
+df = pd.DataFrame(hog_descs)
+i = 0
+#add row of class
+df["Class"] = i
+
+#Storing previously saved feature descriptor to numpy file .
+np.save("glioma.npy", df.to_numpy())
+
+#Folder 2 (Meningioma Tumor)
+hog_descs = []
+i = 0
+for filename in os.listdir(folder2):
+    # print(os.path.join(folder_path, filename))
+    img = cv2.imread(os.path.join(folder2, filename))
+    if img is not None:
+        #resize total  image size to 200 x 200
+        resize=(200,200)
+        img1=cv2.resize(img,resize)
+
+        # Grayscaling the image dataset
+        gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+
+        # Apply median filter with kernel size 3x3
+        median_img = cv2.medianBlur(gray, 3)
+
+        fd, hog_image = hog(median_img, orientations=6, pixels_per_cell=(4, 4),  transform_sqrt=True,cells_per_block=(1, 1), visualize=True)
+        # Convert the descriptor array into a DataFrame format
+        hog_descs.append(fd)
+        df = pd.DataFrame(fd)
+        # print(df)
+        print("descriptor shape ", i, " : ", df.shape)
+        i = i + 1
+
+df = pd.DataFrame(hog_descs)
+i = 1
+#add row class
+df["Class"] = i
+
+#Storing previously saved feature descriptor to numpy file .
+np.save("meningioma.npy", df.to_numpy())
+
+#Folder 3 (No tumor)
+hog_descs = []
+i = 0
+for filename in os.listdir(folder3):
+    # print(os.path.join(folder_path, filename))
+    img = cv2.imread(os.path.join(folder3, filename))
+    if img is not None:
+        #resize total  image size to 200 x 200
+        resize=(200,200)
+        img1=cv2.resize(img,resize)
+
+        # Grayscaling the image dataset
+        gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+
+        # Apply median filter with kernel size 3x3
+        median_img = cv2.medianBlur(gray, 3)
+
+        fd, hog_image = hog(median_img, orientations=6, pixels_per_cell=(4, 4),  transform_sqrt=True,cells_per_block=(1, 1), visualize=True)
+        # Convert the descriptor array into a DataFrame format
+        hog_descs.append(fd)
+        df = pd.DataFrame(fd)
+        # print(df)
+        print("descriptor shape ", i, " : ", df.shape)
+        i = i + 1
+
+df = pd.DataFrame(hog_descs)
+i = 2
+#add row class
+df["Class"] = i
+
+#Storing previously saved feature descriptor to numpy file .
+np.save("notumor.npy", df.to_numpy())
+
+#Folder 4 (Pituitary)
+hog_descs = []
+i = 0
+for filename in os.listdir(folder4):
+    # print(os.path.join(folder_path, filename))
+    img = cv2.imread(os.path.join(folder4, filename))
+    if img is not None:
+        #resize total  image size to 200 x 200
+        resize=(200,200)
+        img1=cv2.resize(img,resize)
+
+        # Grayscaling the image dataset
+        gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+
+        # Apply median filter with kernel size 3x3
+        median_img = cv2.medianBlur(gray, 3)
+
+        fd, hog_image = hog(median_img, orientations=6, pixels_per_cell=(4, 4),  transform_sqrt=True,cells_per_block=(1, 1), visualize=True)
+        # Convert the descriptor array into a DataFrame format
+        hog_descs.append(fd)
+        df = pd.DataFrame(fd)
+        # print(df)
+        print("descriptor shape ", i, " : ", df.shape)
+        i = i + 1
+
+df = pd.DataFrame(hog_descs)
+i = 3
+#add row class
+df["Class"] = i
+
+#Storing previously saved feature descriptor to numpy file .
+np.save("pituitary.npy", df.to_numpy())
+
+# Load the Hog features of All class Glioma, Meningioma, no tumor
+glioma_array = np.load('glioma.npy')
+meningioma_array = np.load('meningioma.npy')
+notumor_array = np.load('notumor.npy')
+pitutary_array = np.load('pituitary.npy')
+
+concatenated_array = np.concatenate((glioma_array, meningioma_array,notumor_array,pitutary_array), axis=0)
+
+# prints the shape of the concatenated array
+print(concatenated_array.shape)
+
+x = concatenated_array[:, :15000]   # selects columns up to 15000 for x
+y = concatenated_array[:, -1]       # selects the last column for y
+y = y.astype(np.int)
+
+print(x.shape)  # prints the shape of x
+print(y.shape)  # prints the shape of y
+
+from sklearn.decomposition import PCA
+# Create a PCA object
+pca = PCA()
+
+# Fit the PCA model to the HOG features
+pca.fit(x)
+
+# Calculate the cumulative explained variance ratio
+cumulative_var_ratio = np.cumsum(pca.explained_variance_ratio_)
+print(pca.explained_variance_ratio_)
+
+# Plot the explained variance ratio against number of components
+plt.plot(cumulative_var_ratio)
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance Ratio')
+plt.title('cumulative variance plot.')
+plt.show()
+
+B = pca.transform(x)
+B = pd.DataFrame(B)
+B
+
+pca = PCA(n_components=100)
+pca.fit(x)
+
+# save the model to disk
+import joblib
+filename = 'PCA_model.sav'
+pickle.dump(pca, open(filename, 'wb'))
+
+B = pca.transform(x)
+B = pd.DataFrame(B)
+B
+
+#Concatinate the Class ID's
+B=pd.concat([B, pd.DataFrame(y)],axis=1)
+B
+
+#Creating Final Feature File after applying PCA
+csv_data1=B.to_csv('Final_HOG_Feature.csv', mode='w',header=False,index=False)
+
+# Reading recently saved file
+train_data = pd.read_csv('Final_HOG_Feature.csv',header=None)
+
+#Check for NaN under a single DataFrame column
+train_data.isnull().values.any()
+
+X = train_data.drop(columns= 100, axis=1)
+X
+Y  = train_data[100]
+Y
+
+k = 5
+kf = KFold(n_splits=k, shuffle=True, random_state=None)
+
+model_xgb = xgb.XGBClassifier()
+
+acc_score = []
+y_pred_list = []
+y_test_list = []
+
+for train_index, test_index in kf.split(X):
+    X_train, X_test = X.iloc[train_index, :], X.iloc[test_index, :]
+    y_train, y_test = Y[train_index], Y[test_index]
+
+    model_xgb.fit(X_train, y_train)
+
+    y_pred = model_xgb.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    acc_score.append(acc)
+
+    y_pred_list.extend(y_pred)
+    y_test_list.extend(y_test)
+
+avg_acc_score = sum(acc_score) / k
+
+print('Accuracy of each fold - {}'.format(acc_score))
+print('Average accuracy: {}'.format(avg_acc_score))
+
+joblib.dump(model_xgb, "xgb.sav")
+
+
+
+import numpy as np
+import pandas as pd
+import os
+import cv2
+import matplotlib.pyplot as plt
+from skimage.feature import hog
+
+# Function to display an image and its HOG features
+def display_hog_image(image_path):
+    img = cv2.imread(image_path)
+    if img is not None:
+        # Resize the image to 200 x 200
+        resize = (200, 200)
+        img_resized = cv2.resize(img, resize)
+
+        # Convert the image to grayscale
+        gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
+
+        # Apply median filter with kernel size 3x3
+        median_img = cv2.medianBlur(gray, 3)
+
+        # Compute HOG features and the HOG image
+        fd, hog_image = hog(median_img, orientations=6, pixels_per_cell=(4, 4),
+                            transform_sqrt=True, cells_per_block=(1, 1), visualize=True)
+
+        # Plot the original image and the HOG image
+        fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
+
+        axes[0].imshow(cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB))
+        axes[0].set_title('Original Image')
+        axes[0].axis('off')
+
+        axes[1].imshow(hog_image, cmap=plt.cm.gray)
+        axes[1].set_title('HOG Image')
+        axes[1].axis('off')
+
+        plt.show()
+
+# Path to the image file
+image_path = "tumor_input_image.jpg"
+
+# Display the image and its HOG features
+display_hog_image(image_path)
+
+
+
+!pip install anvil-uplink
+
+
+import anvil.server
+
+anvil.server.connect("server_QSPUV4H2RLET7NJONPU77OPD-ICDAWETEWSCR4F5M")
+
+
+
+import anvil.server
+import cv2
+import numpy as np
+import io
+from skimage.feature import hog
+import joblib
+import pandas as pd
+
+def process_uploaded_image(file_media):
+    # Access the file content
+    image_content = file_media.get_bytes()
+
+    # Convert the bytes to a NumPy array
+    nparr = np.frombuffer(image_content, np.uint8)
+
+    # Decode the image using OpenCV
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    # Perform any processing or analysis on the image
+    # For example, you can resize the image
+    resized_img = cv2.resize(img, (200, 200))
+
+    # Return the processed image as a NumPy array
+    return resized_img
+
+@anvil.server.callable
+def predictTumorType(uploadedImage):
+    # Process the uploaded image and get the processed image
+    processed_image = process_uploaded_image(uploadedImage)
+
+    # (Optional) Display the processed image
+    # plt.imshow(processed_image)
+    # plt.show()
+
+    # Grayscaling the Image
+    gray = cv2.cvtColor(processed_image, cv2.COLOR_BGR2GRAY)
+
+    # Apply median filter with kernel size 3x3
+    median_img = cv2.medianBlur(gray, 3)
+
+    # Applying HOG Feature Descriptor
+    fd, hog_image = hog(median_img, orientations=6, pixels_per_cell=(4, 4), transform_sqrt=True, cells_per_block=(1, 1), visualize=True)
+
+    # Convert the descriptor array into a DataFrame format
+    print("Descriptor shape: ", fd.shape)
+
+    # Getting data in a DataFrame
+    df = pd.DataFrame(fd)
+
+    # Applying Transpose to DataFrame to convert rows into columns and columns into rows
+    df_transposed = df.transpose()
+
+    # Loading the PCA Model
+    pca = joblib.load('PCA_model.sav')
+
+    # Applying the PCA to extracted Data
+    fd_pca = pca.transform(df_transposed)
+
+    # Load the XGBoost model
+    loaded_model = joblib.load("xgb.sav")
+
+    # Use the loaded model for prediction
+    y_pred = loaded_model.predict(fd_pca)
+
+    # Return the predicted tumor type
+    return int(y_pred[0])
+
+
+anvil.server.wait_forever()
+
